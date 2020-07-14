@@ -46,7 +46,7 @@ Following Video shows the performance of the model trained on position (left), h
 ## Installation
 For now install DeepInsight with the following command:
 ```
-pip install -e git+https://github.com/CYHSM/DeepInsight.git#egg=DeepInsight
+pip install -e git+https://github.com/ealmenzar/DeepInsight.git#egg=DeepInsight
 ```
 If you prefer to use DeepInsight from within your browser, we provide Colab-Notebooks to guide you through how to use DeepInsight with your own data. 
 
