@@ -85,7 +85,7 @@ def read_tetrode_data(fp_raw_file):
     return (raw_data, raw_timestamps, output, output_timestamps, info)
 
 
-def preprocess_output(fp_hdf_out, raw_timestamps, output, output_timestamps, average_window=1000, sampling_rate=30000):
+def preprocess_output(fp_hdf_out, raw_timestamps, output, output_timestamps, average_window=1000, sampling_rate=512):
     """
     Write behaviours to decode into HDF5 file
 
