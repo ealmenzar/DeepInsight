@@ -117,6 +117,6 @@ def preprocess_output(fp_hdf_out, raw_timestamps, output, output_timestamps, ave
     
     # Create and save datasets in HDF5 File
     hdf5.create_or_update(hdf5_file, dataset_name="outputs/raw_orientation",
-                          dataset_shape=[input_length, 1], dataset_type=np.float16, dataset_value=raw_positions[0: input_length, :])
+                          dataset_shape=[input_length, 1], dataset_type=np.float16, dataset_value=raw_orientation[0: input_length, :])
     hdf5_file.flush()
     hdf5_file.close()
