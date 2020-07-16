@@ -12,10 +12,9 @@ import seaborn as sns
 sns.set_style('white')
 
 
-def plot_residuals(fp_hdf_out, output_names, aggregator=np.mean, frequency_spacing=1):
+def plot_frequencies(fp_hdf_out, output_names, aggregator=np.mean, frequency_spacing=1):
     """
     Plots influence plots for each output
-
     Parameters
     ----------
     fp_hdf_out : str
@@ -25,30 +24,78 @@ def plot_residuals(fp_hdf_out, output_names, aggregator=np.mean, frequency_spaci
     frequency_spacing : int, optional
         Spacing on x axis between frequencies, by default 1
     """
+
+    fig, axes = plt.subplots(1, len(output_names), figsize=(16, 5))
+    axes = np.array(axes)
+    axes = axes.flat
+
     # Read data from HDF5 file
     hdf5_file = h5py.File(fp_hdf_out, mode='r')
     losses = hdf5_file["analysis/losses"][()]
     shuffled_losses = hdf5_file["analysis/influence/shuffled_losses"][()]
     frequencies = hdf5_file["inputs/fourier_frequencies"][()].astype(np.float32)
+    np.savetxt(path_to_save+"_frequencies.csv", frequencies, delimiter=",")
     hdf5_file.close()
 
     # Calculate residuals, make sure there is no division by zero by adding small constant. TODO Should be relative to loss
     residuals = (shuffled_losses - losses) / (losses + 0.1)
-
+    
     # Plot
-    fig, axes = plt.subplots(1, len(output_names), figsize=(16, 5))
-    if len(output_names) > 1:
-        axes = axes.flatten()
-    else:
-        axes = [axes]
     for all_residuals, ax, on in zip(residuals.transpose(), axes, output_names):
         residuals_mean = np.mean(all_residuals, axis=0)
         all_residuals = all_residuals / np.sum(residuals_mean)
         df_to_plot = pd.DataFrame(all_residuals).melt()
+        df_to_plot.to_csv(path_to_save+".csv")
         sns.lineplot(x="variable", y="value", data=df_to_plot, ax=ax, estimator=aggregator, ci=68, marker='o',
                      color='k').set(xlabel='Frequencies (Hz)', ylabel='Frequency Influence (%)')
         ax.set_xticks(np.arange(0, len(frequencies), frequency_spacing))
         ax.set_xticklabels(np.round(frequencies[0::frequency_spacing], 2), fontsize=8, rotation=45)
+        ax.set_title(on)
+    for ax in axes:
+        ax.invert_xaxis()
+    sns.despine()
+    fig.tight_layout()
+    fig.show()
+
+
+
+def plot_channels(fp_hdf_out, output_names, aggregator=np.mean, frequency_spacing=1, channels=None, path_to_save="path_to_save"):
+    """
+    Plots influence plots for each output
+    Parameters
+    ----------
+    fp_hdf_out : str
+        File path to HDF5 file
+    aggregator : function handle, optional
+        Which aggregator to use for plotting the lineplots, by default np.mean
+    frequency_spacing : int, optional
+        Spacing on x axis between frequencies, by default 1
+    """
+
+    fig, axes = plt.subplots(1, len(output_names), figsize=(16, 5))
+    axes = np.array(axes)
+    axes = axes.flat
+
+    # Read data from HDF5 file
+    hdf5_file = h5py.File(fp_hdf_out, mode='r')
+    losses = hdf5_file["analysis/losses"][()]
+    shuffled_losses = hdf5_file["analysis/influence/shuffled_losses"][()]
+    frequencies = hdf5_file["inputs/fourier_frequencies"][()].astype(np.float32)
+    np.savetxt(path_to_save+"_frequencies.csv", frequencies, delimiter=",")
+    hdf5_file.close()
+
+    # Calculate residuals, make sure there is no division by zero by adding small constant. TODO Should be relative to loss
+    residuals = (shuffled_losses - losses) / (losses + 0.1)
+    
+    # Plot
+    for all_residuals, ax, on in zip(residuals.transpose(), axes, output_names):
+        residuals_mean = np.mean(all_residuals, axis=0)
+        all_residuals = all_residuals / np.sum(residuals_mean)
+        df_to_plot = pd.DataFrame(all_residuals).melt()
+        df_to_plot.to_csv(path_to_save+".csv")
+        sns.barplot(x="variable", y="value", data=df_to_plot, color="salmon", saturation=.25, ax=ax).set(xlabel='Channels', ylabel='Channels Influence (%)')
+        ax.set_xticks(np.arange(0, 9, frequency_spacing))
+        ax.set_xticklabels(channels, fontsize=8, rotation=45)
         ax.set_title(on)
     for ax in axes:
         ax.invert_xaxis()
